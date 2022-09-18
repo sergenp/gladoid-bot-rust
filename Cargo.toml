@@ -1,0 +1,12 @@
+[package]
+name = "gladoid-bot"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+libsqlite3-sys = { version = "0.25.1", features = ["bundled"] }
+diesel = { version = "2.0.0", features = ["sqlite"] }
+dotenvy = "0.15"
+
+[dev-dependencies]
+diesel_cli = {version="2.0.0", featurs= ["sqlite-bundled"]}
