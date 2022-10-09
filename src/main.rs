@@ -16,7 +16,7 @@ use entity::gladiator::Entity as GladiatorEntity;
 use sea_orm::ActiveValue::{NotSet, Set};
 use sea_orm::ModelTrait;
 use sea_orm::QueryTrait;
-use sea_orm::{prelude::Uuid, ActiveModelTrait, Database, EntityTrait};
+use sea_orm::{prelude::Uuid, ActiveModelTrait, Database, DatabaseBackend, EntityTrait};
 
 #[async_std::main]
 async fn main() {
@@ -32,20 +32,28 @@ async fn main() {
         .unwrap()
         .expect("Didn't find any Model with id 1");
 
-    let attacks = gladiator
-        .find_related(AttackTypesGladiatorsEntity)
-        .find_with_related(AttackTypeEntity)
-        .all(&db)
-        .await
-        .unwrap();
+    let attacks = GladiatorEntity::find_attacks(gladiator.id, db).await;
 
     for attack in attacks {
-        println!("{}", attack.1.len());
-        for attack_type in attack.1 {
-            println!("{}", attack_type.name);
-            println!("{}", attack_type.attack_damage);
-        }
+        println!("{}", attack.name);
     }
+    // let attacks = gladiator
+    //     .find_related(AttackTypesGladiatorsEntity)
+    //     .find_with_related(AttackTypeEntity)
+    //     .all(&db)
+    //     .await
+    //     .unwrap();
+    // .build(DatabaseBackend::Sqlite);
+
+    // println!("{}", attacks);
+
+    // for attack in attacks {
+    //     println!("{}", attack.1.len());
+    //     for attack_type in attack.1 {
+    //         println!("{}", attack_type.name);
+    //         println!("{}", attack_type.attack_damage);
+    //     }
+    // }
 
     // let gladiator = gladiator.insert(&db).await.unwrap();
 
