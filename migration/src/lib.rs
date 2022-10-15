@@ -3,6 +3,7 @@ pub use sea_orm_migration::prelude::*;
 mod m20220101_000001_create_table_gladiator;
 mod m20221008_195747_create_table_attack_type;
 mod m20221008_200725_create_table_attack_types_gladiators;
+mod m20221014_114741_add_level_to_gladiator;
 
 pub struct Migrator;
 
@@ -13,6 +14,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20220101_000001_create_table_gladiator::Migration),
             Box::new(m20221008_195747_create_table_attack_type::Migration),
             Box::new(m20221008_200725_create_table_attack_types_gladiators::Migration),
+            Box::new(m20221014_114741_add_level_to_gladiator::Migration),
         ]
     }
 }
