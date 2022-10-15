@@ -1,5 +1,3 @@
-use std::cell::{Cell, RefCell};
-
 use crate::entity::gladiator::Attackable;
 
 use super::entity::gladiator::Model as Gladiator;

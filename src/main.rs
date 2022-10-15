@@ -1,23 +1,15 @@
-#![allow(unused_imports)]
-#![allow(unused_variables)]
+// #![allow(unused_imports)]
+// #![allow(unused_variables)]
 // #![allow(dead_code)]
 
 mod entity;
 mod game;
 
-use entity::attack_type::ActiveModel as AttackTypeActiveModel;
-use entity::attack_type::Entity as AttackTypeEntity;
-use entity::attack_types_gladiators::ActiveModel;
-use entity::attack_types_gladiators::Entity as AttackTypesGladiatorsEntity;
-use entity::gladiator::ActiveModel as GladiatorActiveModel;
 use entity::gladiator::Entity as GladiatorEntity;
 
 use game::GladiatorGame;
 
-use sea_orm::ActiveValue::{NotSet, Set};
-use sea_orm::ModelTrait;
-use sea_orm::QueryTrait;
-use sea_orm::{prelude::Uuid, ActiveModelTrait, Database, DatabaseBackend, EntityTrait};
+use sea_orm::{Database, EntityTrait};
 
 #[async_std::main]
 async fn main() {
@@ -48,8 +40,8 @@ async fn main() {
     //     None => panic!(),
     // };
 
-    println!("Gladiator 1 health: {}, level: {}, attack: {}, defence: {}", gladiator.health, gladiator.level, gladiator.attack, gladiator.defence);
-    println!("Gladiator 1 health: {}, level: {}, attack: {}, defence: {}", gladiator_2.health, gladiator_2.level, gladiator_2.attack, gladiator_2.defence);
+    println!("Gladiator {} health: {}, level: {}, attack: {}, defence: {}",gladiator.name, gladiator.health, gladiator.level, gladiator.attack, gladiator.defence);
+    println!("Gladiator {} health: {}, level: {}, attack: {}, defence: {}", gladiator_2.name, gladiator_2.health, gladiator_2.level, gladiator_2.attack, gladiator_2.defence);
 
     // player_1 = Gladiator
 
