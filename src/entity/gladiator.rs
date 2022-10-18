@@ -1,6 +1,5 @@
-use sea_orm::{entity::prelude::*, DatabaseConnection};
 use super::attack_type::Model as AttackTypeModel;
-
+use sea_orm::{entity::prelude::*, DatabaseConnection};
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
 #[sea_orm(table_name = "gladiator")]
@@ -14,16 +13,16 @@ pub struct Model {
     #[sea_orm(ignore)]
     pub health: f32,
     #[sea_orm(ignore)]
-    pub attacks: Vec<AttackTypeModel>
+    pub attacks: Vec<AttackTypeModel>,
 }
 
 impl Model {
     pub fn calculate_secondary_stats(mut self) -> Self {
-        self.health = ((self.defence as f32 * 5.0) + 5.0)*0.5;
+        self.health = ((self.defence as f32 * 5.0) + 5.0) * 0.5;
         return self;
     }
-    
-    pub async fn populate_attacks(mut self, db:&DatabaseConnection) -> Self {
+
+    pub async fn populate_attacks(mut self, db: &DatabaseConnection) -> Self {
         self.attacks = Entity::find_attacks(self.id, db).await;
         return self;
     }
@@ -47,17 +46,14 @@ impl Entity {
     /// Finds the attacks for the given gladiator id,
     /// by joining the m2m table between gladiator and attack_types
     /// useful for a varius of reasons
-    pub async fn find_attacks(
-        gladiator_id: i32,
-        db:&DatabaseConnection,
-    ) -> Vec<AttackTypeModel> {
+    pub async fn find_attacks(gladiator_id: i32, db: &DatabaseConnection) -> Vec<AttackTypeModel> {
         return super::attack_type::Entity::find()
             .inner_join(super::attack_types_gladiators::Entity)
             .filter(super::attack_types_gladiators::Column::GladiatorId.eq(gladiator_id))
             .all(db)
             .await
             .unwrap();
-    }   
+    }
 }
 
 pub trait Attackable<T> {
@@ -71,8 +67,7 @@ pub trait Attackable<T> {
 
 impl Attackable<Model> for Model {
     fn calculate_attack_damage(&self, attack_id: i32) -> f32 {
-        let attack_type: &AttackTypeModel = self
-            .find_attack(attack_id);
+        let attack_type: &AttackTypeModel = self.find_attack(attack_id);
         return (self.attack + attack_type.attack_damage) as f32;
     }
 
@@ -81,7 +76,11 @@ impl Attackable<Model> for Model {
         // let damage: f32 = pure_damage / (self.defence as f32 / pure_damage).powf(2.0);
         self.health = {
             let hp = self.health - damage;
-            if hp > 0.0 {hp} else {0.0}    
+            if hp > 0.0 {
+                hp
+            } else {
+                0.0
+            }
         };
 
         println!(
@@ -89,15 +88,16 @@ impl Attackable<Model> for Model {
             self.name, damage, self.name, self.health
         );
 
-        return damage
+        return damage;
     }
 }
 
 impl Model {
-    fn find_attack(&self, attack_id:i32) -> &AttackTypeModel {
+    fn find_attack(&self, attack_id: i32) -> &AttackTypeModel {
         return self
-        .attacks
-        .iter()
-        .find(|el| -> bool { el.id == attack_id }).expect("Couldn't find attack");
+            .attacks
+            .iter()
+            .find(|el| -> bool { el.id == attack_id })
+            .expect("Couldn't find attack");
     }
 }

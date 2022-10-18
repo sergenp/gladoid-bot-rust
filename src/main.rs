@@ -1,71 +1,67 @@
-// #![allow(unused_imports)]
-// #![allow(unused_variables)]
-// #![allow(dead_code)]
+#![allow(dead_code)]
 
+mod commands;
 mod entity;
 mod game;
 
-use entity::gladiator::Entity as GladiatorEntity;
+use serenity::async_trait;
+use serenity::model::application::command::Command;
+use serenity::model::application::interaction::{Interaction, InteractionResponseType};
+use serenity::model::gateway::Ready;
+use serenity::prelude::*;
 
-use game::GladiatorGame;
+struct Handler;
 
-use sea_orm::{Database, EntityTrait};
+#[async_trait]
+impl EventHandler for Handler {
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        if let Interaction::ApplicationCommand(command) = interaction {
+            // println!("Received command interaction: {:#?}", command);
+
+            let content = match command.data.name.as_str() {
+                "dungeon" => commands::dungeon::run(&command.data.options),
+                _ => "not implemented :(".to_string(),
+            };
+
+            if let Err(why) = command
+                .create_interaction_response(&ctx.http, |response| {
+                    response
+                        .kind(InteractionResponseType::ChannelMessageWithSource)
+                        .interaction_response_data(|message| message.content(content))
+                })
+                .await
+            {
+                println!("Cannot respond to slash command: {}", why);
+            }
+        }
+    }
+
+    async fn ready(&self, ctx: Context, ready: Ready) {
+        println!("{} is connected!", ready.user.name);
+
+        let _ = Command::create_global_application_command(&ctx.http, |command| {
+            commands::dungeon::register(command)
+        })
+        .await;
+    }
+}
 
 #[async_std::main]
 async fn main() {
-    let db = Database::connect(
-        "sqlite:///D:/sergen/Masaüstü/Programming/rust/gladoid-bot/migration/gladoidbot.sqlite",
-    )
-    .await
-    .unwrap();
+    // Configure the client with your Discord bot token in the environment.
+    let token = std::env::var("DISCORD_TOKEN").expect("Expected a token in the environment");
 
-    let gladiator = GladiatorEntity::find_by_id(1)
-        .one(&db)
+    // Build our client.
+    let mut client = Client::builder(token, GatewayIntents::empty())
+        .event_handler(Handler)
         .await
-        .expect("Database error")
-        .expect("Didn't find any Model")
-        .calculate_secondary_stats()
-        .populate_attacks(&db).await;
+        .expect("Error creating client");
 
-    let gladiator_2 = GladiatorEntity::find_by_id(2)
-        .one(&db)
-        .await
-        .expect("Database error")
-        .expect("Didn't find any Model")
-        .calculate_secondary_stats()
-        .populate_attacks(&db).await;
-    
-    // let gladiator_2 = match gladiator_2 {
-    //     Some(x) =>  x.calculate_secondary_stats().populate_attacks(&db).await,
-    //     None => panic!(),
-    // };
-
-    println!("Gladiator {} health: {}, level: {}, attack: {}, defence: {}",gladiator.name, gladiator.health, gladiator.level, gladiator.attack, gladiator.defence);
-    println!("Gladiator {} health: {}, level: {}, attack: {}, defence: {}", gladiator_2.name, gladiator_2.health, gladiator_2.level, gladiator_2.attack, gladiator_2.defence);
-
-    // player_1 = Gladiator
-
-    let mut game = GladiatorGame::create_game(gladiator, gladiator_2);
-
-    game.game_loop();
-
-    // println!("Gladiator {} level: {}", game.players[0].name, game.players[0].level);
-    // println!("Gladiator {} level: {}", game.players[1].name, game.players[1].level);
-
-    
-    // let attack_type = AttackTypeActiveModel {
-    //     attack_damage: Set(5),
-    //     name: Set("Slash".to_owned()),
-    //     ..Default::default()
-    // };
-
-    // let attack_type = attack_type.insert(&db).await.unwrap();
-
-    // let attack_types_gladiators = AttackTypesGladiatorsActiveModel {
-    //     attack_type_id: Set(attack_type.id),
-    //     gladiator_id: Set(gladiator.id),
-    //     ..Default::default()
-    // };
-
-    // let attack_types_gladiators = attack_types_gladiators.insert(&db).await.unwrap();
+    // Finally, start a single shard, and start listening to events.
+    //
+    // Shards will automatically attempt to reconnect, and will perform
+    // exponential backoff until it reconnects.
+    if let Err(why) = client.start().await {
+        println!("Client error: {:?}", why);
+    }
 }
